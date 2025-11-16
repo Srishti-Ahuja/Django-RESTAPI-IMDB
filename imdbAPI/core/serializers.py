@@ -5,6 +5,10 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = '__all__'
+        extra_kwargs = {
+            'movie': {'read_only': True},
+            'reviewer': {'read_only': True}
+        }
 
 class MovieSerializer(serializers.ModelSerializer):
     reviews = serializers.StringRelatedField(many=True, read_only=True)

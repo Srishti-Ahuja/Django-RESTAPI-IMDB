@@ -1,6 +1,11 @@
+from rest_framework.exceptions import ValidationError
+
 from .models import Movie, Platform, Review
 from .serializers import MovieSerializer, PlatformSerializer, ReviewSerializer
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView
+from rest_framework.generics import (ListCreateAPIView, RetrieveUpdateDestroyAPIView,
+                                     ListAPIView)
+from rest_framework.permissions import IsAuthenticated
+from .permissions import IsOwnerOrReadOnly
 
 # Create your views here.
 class MovieList(ListCreateAPIView):
@@ -26,9 +31,20 @@ class PlatformDetail(RetrieveUpdateDestroyAPIView):
     serializer_class = PlatformSerializer
 
 class ReviewList(ListCreateAPIView):
-    queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Review.objects.filter(movie=self.kwargs['pk'])
+
+    def perform_create(self, serializer):
+        reviews = Review.objects.filter(movie=self.kwargs['pk']).filter(reviewer=self.request.user)
+        if reviews.exists():
+            raise ValidationError("You have reviewed this movie already", 401)
+        movie = Movie.objects.get(pk=self.kwargs['pk'])
+        serializer.save(movie=movie, reviewer=self.request.user)
 
 class ReviewDetail(RetrieveUpdateDestroyAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
