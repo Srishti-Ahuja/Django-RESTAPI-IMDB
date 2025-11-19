@@ -15,6 +15,8 @@ class Movie(models.Model):
     description = models.TextField()
     platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name='movies')
     genre = models.CharField(max_length=100)
+    avg_rating = models.FloatField(default=0)
+    no_of_ratings = models.IntegerField(default=0)
 
     def __str__(self):
         return self.title

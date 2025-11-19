@@ -42,7 +42,23 @@ class ReviewList(ListCreateAPIView):
         if reviews.exists():
             raise ValidationError("You have reviewed this movie already", 401)
         movie = Movie.objects.get(pk=self.kwargs['pk'])
+
+        #Add rating value to movie
+        movie.avg_rating = (movie.avg_rating * movie.no_of_ratings) + serializer.validated_data['rating'] / (movie.no_of_ratings + 1)
+        movie.no_of_ratings += 1
+        movie.save()
+
         serializer.save(movie=movie, reviewer=self.request.user)
+
+    def perform_update(self, serializer):
+        movie = Movie.objects.get(pk=self.kwargs['pk'])
+        movie.avg_rating = (movie.avg_rating * movie.no_of_ratings) + serializer.validated_data['rating'] / (
+                    movie.no_of_ratings + 1)
+        movie.no_of_ratings += 1
+        movie.save()
+
+        serializer.save()
+
 
 class ReviewDetail(RetrieveUpdateDestroyAPIView):
     queryset = Review.objects.all()

@@ -15,6 +15,10 @@ class MovieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movie
         fields = '__all__'
+        extra_kwargs = {
+            'avg_rating': {'read_only': True},
+            'no_of_ratings': {'read_only': True}
+        }
 
 class PlatformSerializer(serializers.ModelSerializer):
     movies = serializers.StringRelatedField(many=True, read_only=True)
